@@ -95,6 +95,10 @@ func registerWebHook(owner string, repo string, token string, url string) error 
 	return nil
 }
 
+func processIssueCommentEvent(event github.IssueCommentEvent) error {
+	fmt.Printf("Message: %v", event.Comment)
+}
+
 func ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	payload, err := github.ValidatePayload(r, []byte("toto"))
 	if err != nil {
@@ -107,4 +111,10 @@ func ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Printf("Received event: %v", event)
 
+	switch event := event.(type) {
+	case github.IssueCommentEvent:
+		processCommitCommentEvent(event)
+	default:
+		fmt.Printf("Received event of type %v\n", event.(type))
+	}
 }
