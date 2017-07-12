@@ -7,11 +7,19 @@ import (
 	"golang.org/x/oauth2"
 	"net/http"
 	"os"
+	"reflect"
 )
 
 func main() {
-	githubToken := flag.String("github-token", "", "Github token")
-	webhookUrl := flag.String("webhook-url", "", "Webhook URL")
+	config := ApplicationConfiguration{
+		Github: &GithubConfiguration{
+			Owner: flag.String("github-owner", "toto", "Github repository owner"),
+			Token: flag.String("github-token", "", "Github token"),
+			Webhook: &GithubWebhookConfiguration{
+				Url: flag.String("webhook-url", "", "Webhook URL"),
+			},
+		},
+	}
 
 	if *githubToken == "" || *webhookUrl == "" {
 		flag.Usage()
@@ -96,7 +104,8 @@ func registerWebHook(owner string, repo string, token string, url string) error 
 }
 
 func processIssueCommentEvent(event github.IssueCommentEvent) error {
-	fmt.Printf("Message: %v", event.Comment)
+	_, err := fmt.Printf("Message: %v", event.Comment)
+	return err
 }
 
 func ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -113,8 +122,8 @@ func ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	switch event := event.(type) {
 	case github.IssueCommentEvent:
-		processCommitCommentEvent(event)
+		processIssueCommentEvent(event)
 	default:
-		fmt.Printf("Received event of type %v\n", event.(type))
+		fmt.Printf("Received event of type %v\n", reflect.TypeOf(event))
 	}
 }
